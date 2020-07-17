@@ -81,7 +81,7 @@ class Alphabet:
     def get_content(self):
         return {'instance2index': self.instance2index, 'instances': self.instances}
 
-    def from_json(self, data):
+    def  from_json(self, data):
         self.instances = data["instances"]
         self.instance2index = data["instance2index"]
 

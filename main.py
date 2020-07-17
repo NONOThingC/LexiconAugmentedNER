@@ -18,6 +18,7 @@ import numpy as np
 from utils.metric import get_ner_fmeasure
 from model.gazlstm import GazLSTM as SeqModel
 from utils.data import Data
+import pathlib
 
 
 
@@ -263,7 +264,6 @@ def train(data, save_model_dir, seg=True):
 
     #data.show_data_summary()
 
-
     model = SeqModel(data)
     print( "finish building model.")
 
@@ -277,7 +277,6 @@ def train(data, save_model_dir, seg=True):
     best_test = -1
     best_test_p = -1
     best_test_r = -1
-
 
     ## start training
     for idx in range(data.HP_iteration):
@@ -473,10 +472,10 @@ if __name__ == '__main__':
     save_model_dir = args.modelpath+args.modelname
     save_data_name = args.savedset
     gpu = torch.cuda.is_available()
-
-    char_emb = "../CNNNERmodel/data/gigaword_chn.all.a2b.uni.ite50.vec"
-    bichar_emb = "../CNNNERmodel/data/gigaword_chn.all.a2b.bi.ite50.vec"
-    gaz_file = "../CNNNERmodel/data/ctb.50d.vec"
+    current_path = pathlib.Path().cwd()
+    char_emb = current_path / 'data/Embedding/gigaword_chn.all.a2b.uni.ite50.vec'
+    bichar_emb = current_path / 'data/Embedding/gigaword_chn.all.a2b.bi.ite50.vec'
+    gaz_file = current_path / "data/Embedding/ctb.50d.vec"
 
     sys.stdout.flush()
 
@@ -522,7 +521,7 @@ if __name__ == '__main__':
             data.generate_instance_with_gaz(test_file,'test')
             data.build_word_pretrain_emb(char_emb)
             data.build_biword_pretrain_emb(bichar_emb)
-            data.build_gaz_pretrain_emb(gaz_file)
+            data.build_gaz_pretrain_emb(gaz_file) 
 
             print('Dumping data')
             with open(save_data_name, 'wb') as f:

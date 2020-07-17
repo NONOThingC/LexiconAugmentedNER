@@ -68,7 +68,7 @@ def read_instance_with_gaz(num_layer, input_file, gaz, word_alphabet, biword_alp
             chars.append(char_list)
             char_Ids.append(char_Id)
 
-        else:
+        else:# 每个数据结尾的sep
             if ((max_sent_length < 0) or (len(words) < max_sent_length)) and (len(words)>0):
                 gaz_Ids = []
                 layergazmasks = []
@@ -83,15 +83,15 @@ def read_instance_with_gaz(num_layer, input_file, gaz, word_alphabet, biword_alp
                 max_gazlist = 0
                 max_gazcharlen = 0
                 for idx in range(w_length):
-
-                    matched_list = gaz.enumerateMatchList(words[idx:])
+                    # 找匹配的词
+                    matched_list = gaz.enumerateMatchList(words[idx:])# matched is a word
                     matched_length = [len(a) for a in matched_list]
                     matched_Id  = [gaz_alphabet.get_index(entity) for entity in matched_list]
-
+                    # 找出最大匹配词的不相同字符长度
                     if matched_length:
                         max_gazcharlen = max(max(matched_length),max_gazcharlen)
 
-
+                    # 按照匹配出来的词来打BMES标签
                     for w in range(len(matched_Id)):
                         gaz_chars = []
                         g = matched_list[w]
@@ -117,12 +117,12 @@ def read_instance_with_gaz(num_layer, input_file, gaz, word_alphabet, biword_alp
 
 
 
-                    for label in range(4):
+                    for label in range(4):# 给空标签加入空向量
                         if not gazs[idx][label]:
                             gazs[idx][label].append(0)
                             gazs_count[idx][label].append(1)
                             gaz_char_Id[idx][label].append([0])
-
+                        # 找出最长的BMES有多长
                         max_gazlist = max(len(gazs[idx][label]),max_gazlist)
 
                     matched_Id  = [gaz_alphabet.get_index(entity) for entity in matched_list]  #词号
@@ -139,15 +139,15 @@ def read_instance_with_gaz(num_layer, input_file, gaz, word_alphabet, biword_alp
                     for label in range(4):
                         label_len = len(gazs[idx][label])
                         count_set = set(gazs_count[idx][label])
-                        if len(count_set) == 1 and 0 in count_set:
+                        if len(count_set) == 1 and 0 in count_set:# 此情况意义是此字符没有BMES
                             gazs_count[idx][label] = [1]*label_len
-
+                        # mask label and gazs
                         mask = label_len*[0]
                         mask += (max_gazlist-label_len)*[1]
 
                         gazs[idx][label] += (max_gazlist-label_len)*[0]  ## padding
                         gazs_count[idx][label] += (max_gazlist-label_len)*[0]  ## padding
-
+                        # mask char
                         char_mask = []
                         for g in range(len(gaz_char_Id[idx][label])):
                             glen = len(gaz_char_Id[idx][label][g])

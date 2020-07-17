@@ -1,6 +1,10 @@
 from utils.trie import Trie
 
 class Gazetteer:
+    """
+    record entity id and their name
+
+    """
     def __init__(self, lower):
         self.trie = Trie()
         self.ent2type = {} ## word list to type

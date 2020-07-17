@@ -6,11 +6,14 @@ class TrieNode:
         self.is_word = False
 
 class Trie:
+    """
+    Word tree， which means root->first letter->second letter->...->end letter. If it is a word then is_word=True.
+    maybe this is
+    """
     def __init__(self):
         self.root = TrieNode()
 
     def insert(self, word):
-        
         current = self.root
         for letter in word:
             current = current.children[letter]

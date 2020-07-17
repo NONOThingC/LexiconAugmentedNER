@@ -10,7 +10,6 @@ from transformers.modeling_bert import BertModel
 class GazLSTM(nn.Module):
     def __init__(self, data):
         super(GazLSTM, self).__init__()
-
         self.gpu = data.HP_gpu
         self.use_biword = data.use_bigram
         self.hidden_dim = data.HP_hidden_dim
@@ -43,7 +42,6 @@ class GazLSTM(nn.Module):
         else:
             self.gaz_embedding.weight.data.copy_(torch.from_numpy(self.random_embedding(data.gaz_alphabet.size(), self.gaz_emb_dim)))
 
-
         if data.pretrain_word_embedding is not None:
             self.word_embedding.weight.data.copy_(torch.from_numpy(data.pretrain_word_embedding))
         else:
@@ -53,7 +51,6 @@ class GazLSTM(nn.Module):
                 self.biword_embedding.weight.data.copy_(torch.from_numpy(data.pretrain_biword_embedding))
             else:
                 self.biword_embedding.weight.data.copy_(torch.from_numpy(self.random_embedding(data.biword_alphabet.size(), self.word_emb_dim)))
-
 
         char_feature_dim = self.word_emb_dim + 4*self.gaz_emb_dim
         if self.use_biword:

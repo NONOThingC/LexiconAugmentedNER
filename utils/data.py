@@ -6,7 +6,6 @@ from utils.alphabet import Alphabet
 from utils.functions import *
 from utils.gazetteer import Gazetteer
 
-
 START = "</s>"
 UNKNOWN = "</unk>"
 PADDING = "</pad>"
@@ -153,8 +152,11 @@ class Data:
 
 
     def build_alphabet(self, input_file):
-        in_lines = open(input_file,'r',encoding="utf-8").readlines()
-        seqlen = 0
+        import chardet
+        with open(input_file,'rb') as f:
+            charset=chardet.detect(f.read())
+        in_lines = open(input_file,'r',encoding=charset['encoding']).readlines()
+        seqlen = 0 # 这东西没用到
         for idx in range(len(in_lines)):
             line = in_lines[idx]
             if len(line) > 2:
@@ -165,7 +167,7 @@ class Data:
                 label = pairs[-1]
                 self.label_alphabet.add(label)
                 self.word_alphabet.add(word)
-                if idx < len(in_lines) - 1 and len(in_lines[idx+1]) > 2:
+                if idx < len(in_lines) - 1 and len(in_lines[idx+1]) > 2:#双字特征
                     biword = word + in_lines[idx+1].strip().split()[0]
                 else:
                     biword = word + NULLKEY
@@ -210,35 +212,43 @@ class Data:
 
 
     def build_gaz_alphabet(self, input_file, count=False):
+        """
+        构建gaz表，统计其出现频率
+        :param input_file:
+        :param count:
+        :return:
+        """
         in_lines = open(input_file,'r',encoding="utf-8").readlines()
         word_list = []
         for line in in_lines:
+            # 给word_list中加入词汇
             if len(line) > 3:
                 word = line.split()[0]
                 if self.number_normalized:
                     word = normalize_word(word)
                 word_list.append(word)
-            else:
+            else: # 每次到达换行符时候，就来处理前面的word_list
                 w_length = len(word_list)
                 entitys = []
                 for idx in range(w_length):
-                    matched_entity = self.gaz.enumerateMatchList(word_list[idx:])
+                    matched_entity = self.gaz.enumerateMatchList(word_list[idx:])# 将词语从头到尾枚举，看有没有匹配的，所谓匹配就是成词语树
                     entitys += matched_entity
                     for entity in matched_entity:
                         # print entity, self.gaz.searchId(entity),self.gaz.searchType(entity)
+                        # 向表中加入这些实体的序号
                         self.gaz_alphabet.add(entity)
                         index = self.gaz_alphabet.get_index(entity)
-
-
                         self.gaz_count[index] = self.gaz_count.get(index,0)  ## initialize gaz count
 
 
                 if count:
                     entitys.sort(key=lambda x:-len(x))
                     while entitys:
+                        # 这里统计找到的实体的数目
                         longest = entitys[0]
                         longest_index = self.gaz_alphabet.get_index(longest)
                         self.gaz_count[longest_index] = self.gaz_count.get(longest_index, 0) + 1
+                        # 如果最长实体的子实体在匹配条目中出现了，那就将其remove
 
                         gazlen = len(longest)
                         for i in range(gazlen):
@@ -248,7 +258,7 @@ class Data:
                                     entitys.remove(covering_gaz)
                                     # print('remove:',covering_gaz)
                 word_list = []
-        print("gaz alphabet size:", self.gaz_alphabet.size())
+        print("%s gaz alphabet size: %s",input_file, self.gaz_alphabet.size())
 
     def fix_alphabet(self):
         self.word_alphabet.close()
